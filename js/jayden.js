@@ -114,7 +114,6 @@ addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e;
 addEventListener("appinstalled", () => { deferred = null; setup(); });
 async function setup() {
   const box = $("#setup"), inst = $("#btnInstall"), push = $("#btnPush");
-  if (!ME) { box.hidden = true; return; }
   const standalone = AQ.isStandalone(), ios = AQ.isIOS();
   const ps = "serviceWorker" in navigator ? await AQ.pushState().catch(() => "niet") : "niet";
   inst.hidden = standalone || !deferred;
@@ -124,7 +123,12 @@ async function setup() {
   else if (ps === "geblokkeerd") txt = "Meldingen staan uit in je instellingen. Zet ze aan bij Instellingen > Meldingen voor deze app.";
   else if (!deferred && !standalone && ps !== "uit") txt = "Installeren: open het menu van je browser (drie puntjes) en kies 'App installeren' of 'Toevoegen aan startscherm'.";
   $("#setupTxt").textContent = txt;
-  box.hidden = standalone && (ps === "aan" || ps === "niet");
+  if (!ME) push.hidden = true;
+  // Installeren altijd tonen zolang de app niet geïnstalleerd is (ook vóór het inloggen)
+  box.hidden = standalone && (ps === "aan" || ps === "niet" || !ME);
+  if (!standalone && !ME) txt = ios ? "Zet de app eerst op je beginscherm: tik onderin op het deel-icoon (vierkantje met pijl) en kies 'Zet op beginscherm'. Open hem daarna vanaf je beginscherm en log in."
+    : deferred ? "Installeer de app eerst, dan staat hij als app op je telefoon. Log daarna in." : "Installeer de app via het menu van je browser (drie puntjes) > 'App installeren' of 'Toevoegen aan startscherm'. Log daarna in.";
+  $("#setupTxt").textContent = txt;
 }
 $("#btnInstall").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; setup(); });
 $("#btnPush").addEventListener("click", async () => {
@@ -136,12 +140,11 @@ $("#btnPush").addEventListener("click", async () => {
 function showApp(on) {
   $("#login").hidden = on || !sb; $("nav").hidden = !on;
   document.querySelectorAll("main section").forEach(s => s.hidden = !on);
-  if (!on) $("#setup").hidden = true;
 }
 async function auth() {
   if (!sb) { showApp(false); return; }
   const { data } = await sb.auth.getSession();
-  if (!data.session) { ME = null; showApp(false); $("#prog").textContent = "Log eerst in"; try { $("#l-mail").value = localStorage.getItem("aq-mail") || ""; } catch (e) {} return; }
+  if (!data.session) { ME = null; showApp(false); setup(); $("#prog").textContent = "Log eerst in"; try { $("#l-mail").value = localStorage.getItem("aq-mail") || ""; } catch (e) {} return; }
   const { data: me, error } = await sb.rpc("aq_me");
   ME = me && me[0];
   if (!ME) {
