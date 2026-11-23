@@ -5,21 +5,22 @@
   // Een scène = reeks beelden. d = seconden in beeld, z = zoom van/naar, o = waar naartoe gezoomd wordt,
   // fx: "chomp" (hapbewegingen), "pop" (duim-sprongetje), "work" (bezig: klein wiebeltje)
   const thumb = { src: "img/vis4.webp", d: 1.6, z: [1, 1], o: "88% 62%", fx: "pop" };
-  const task = (name, o, label) => ({ label, frames: [{ src: `img/taak-${name}.webp`, d: 2.8, z: [1.0, 1.07], o, fx: "work" }, thumb] });
+  // Taken met een eigen filmpje (eindigt met een duim). Bij "minder beweging" of als de video niet laadt: het duim-plaatje.
+  const film = (name, label) => ({ label, video: `vid/${name}.mp4`, poster: `vid/${name}-start.webp`, still: `vid/${name}-duim.webp`, dur: 5.15 });
   const SCENES = {
     vis: { label: "Goudvis eet voer", hap: 2.05, frames: [
       { src: "img/vis1.webp", d: 1.75, z: [1.04, 1.14], o: "70% 40%", tx: [-4, 1] },
       { src: "img/vis2.webp", d: 1.35, z: [1.08, 1.1], o: "85% 42%", fx: "chomp" },
       { src: "img/vis3.webp", d: 1.15, z: [1.02, 1.08], o: "55% 50%" }, thumb] },
-    garnalen: { label: "Garnalen voeren", frames: [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => ({ src: `img/garnalen${i}.webp`, d: i === 8 ? 1.8 : .5, z: [1.0 + i * .008, 1.008 + i * .008], o: "50% 70%", fx: i >= 6 ? "pop" : "" })) },
-    kijken: task("kijken", "72% 20%", "Even kijken en tellen"),
-    test: task("test", "72% 20%", "Water testen"),
-    verversen: task("verversen", "50% 20%", "Water verversen"),
-    ruiten: task("ruiten", "68% 20%", "Ruiten schoonmaken"),
-    bodem: task("bodem", "55% 20%", "Bodem afzuigen"),
-    planten: task("planten", "58% 20%", "Planten bijknippen"),
-    filter: task("filter", "62% 20%", "Filterspons uitspoelen"),
-    voorraad: { label: "Voorraad checken", frames: [{ src: "img/taak-voorraad.webp", d: 2.6, z: [1.0, 1.07], o: "72% 20%", fx: "work" }, { src: "img/taak-voorraad.webp", d: 1.6, z: [1, 1], o: "90% 30%", fx: "pop" }] },
+    garnalen: film("garnalen", "Garnalen voeren"),
+    kijken: film("kijken", "Even kijken en tellen"),
+    test: film("test", "Water testen"),
+    verversen: film("verversen", "Water verversen"),
+    ruiten: film("ruiten", "Ruiten schoonmaken"),
+    bodem: film("bodem", "Bodem afzuigen"),
+    planten: film("planten", "Planten bijknippen"),
+    filter: film("filter", "Filterspons uitspoelen"),
+    voorraad: film("voorraad", "Voorraad checken"),
     duim: { label: "Alleen een duim", frames: [{ src: "img/vis3.webp", d: 1.1, z: [1.02, 1.08], o: "55% 50%" }, thumb] }
   };
   const LEGACY = { garnaal: "garnalen" };
@@ -36,6 +37,8 @@
 .aq-stage{position:relative;aspect-ratio:3/2;overflow:hidden;background:#0d5f7a}
 .aq-bob{position:absolute;inset:0;animation:aqBob 2.4s ease-in-out infinite alternate}
 .aq-l{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;animation-timing-function:linear;animation-fill-mode:both}
+.aq-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#0d5f7a}
+.aq-msg.aq-wait{opacity:0;animation:none}
 .aq-hap{position:absolute;left:79%;top:14%;font:600 clamp(22px,6vw,32px)/1 Fredoka,Nunito,sans-serif;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.45);opacity:0;animation:aqHap .8s both}
 .aq-crumb{position:absolute;left:84%;top:40%;width:7px;height:7px;border-radius:50%;background:#7a4a22;opacity:0;animation:aqCrumb .9s ease-out both}
 .aq-spark{position:absolute;width:26px;height:26px;opacity:0;animation:aqSpark 1.1s both}
@@ -84,6 +87,15 @@
   }
 
   function stage(sc) {
+    if (sc.video) {
+      const still = reduce();
+      const end = still ? .2 : sc.dur - .45;
+      const sparks = [[70, 8, 0], [94, 30, .15], [62, 70, .3]].map(([l, tp, dl]) =>
+        `<span class="aq-spark" style="left:${l}%;top:${tp}%;animation-delay:${end + dl}s">${star}</span>`).join("");
+      const media = still ? `<img class="aq-v" src="${sc.still}" alt="">`
+        : `<video class="aq-v" src="${sc.video}" poster="${sc.poster}" muted playsinline autoplay preload="auto" disablepictureinpicture></video>`;
+      return { html: `<div class="aq-stage">${media}${still ? sparks : ""}</div>`, B: { end, T: sc.dur, video: !still, sparks } };
+    }
     const B = build(sc);
     const crumbs = B.hap ? [[38, -46], [62, -18], [50, 26], [24, -64], [70, 8]].map(([x, y], i) =>
       `<span class="aq-crumb" style="--x:${x}px;--y:${y}px;animation-delay:${B.hap + .05 + i * .04}s"></span>`).join("") + `<span class="aq-hap" style="animation-delay:${B.hap}s">Hap!</span>` : "";
@@ -97,8 +109,12 @@
   let styled = false;
   const loaded = new Set();
   function preload(names) {
-    for (const n of names || Object.keys(SCENES)) for (const f of (SCENES[n] || { frames: [] }).frames) {
+    for (const n of names || Object.keys(SCENES)) {
+      const sc = SCENES[n] || { frames: [] };
+      if (sc.video) { for (const u of [sc.poster, sc.still]) if (!loaded.has(u)) { loaded.add(u); new Image().src = u; } continue; }
+      for (const f of sc.frames) {
       if (loaded.has(f.src)) continue; loaded.add(f.src); const i = new Image(); i.src = f.src;
+      }
     }
   }
   function play(name = "duim", { title = "Duim omhoog!", sub = "Goed gedaan!" } = {}) {
@@ -109,14 +125,35 @@
       const ov = document.createElement("div");
       ov.className = "aq-ov";
       ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", title);
-      ov.innerHTML = `<div class="aq-box">${html}<div class="aq-msg" style="animation-delay:${B.end + .1}s"><h2></h2><p></p><button type="button">Verder</button></div></div>`;
+      const msgStyle = B.video ? "" : ` style="animation-delay:${B.end + .1}s"`;
+      ov.innerHTML = `<div class="aq-box">${html}<div class="aq-msg${B.video ? " aq-wait" : ""}"${msgStyle}><h2></h2><p></p><button type="button">Verder</button></div></div>`;
       ov.querySelector("h2").textContent = title; ov.querySelector("p").textContent = sub;
       document.body.appendChild(ov);
-      const start = Date.now(); let closed = false;
-      const close = () => { if (closed) return; closed = true; ov.remove(); resolve(); };
+      const start = Date.now(); let closed = false, timer = 0;
+      const close = () => { if (closed) return; closed = true; clearTimeout(timer); ov.remove(); resolve(); };
       ov.addEventListener("click", e => { if (e.target.closest("button") || Date.now() - start > 1500) close(); });
-      setTimeout(close, (B.T + 3.5) * 1000);
-      setTimeout(() => ov.querySelector("button")?.focus(), 400);
+      if (B.video) {
+        // Bericht en sterretjes pas tonen als de vis zijn duim geeft (einde filmpje)
+        const v = ov.querySelector("video"), msg = ov.querySelector(".aq-msg");
+        let shown = false;
+        const show = () => {
+          if (shown || closed) return; shown = true;
+          ov.querySelector(".aq-stage").insertAdjacentHTML("beforeend", B.sparks.replace(/animation-delay:[\d.]+s/g, m => `animation-delay:${(parseFloat(m.slice(16)) - B.end).toFixed(2)}s`));
+          msg.classList.remove("aq-wait"); msg.style.animationDelay = ".1s";
+          clearTimeout(timer); timer = setTimeout(close, 4500);
+          setTimeout(() => msg.querySelector("button")?.focus(), 400);
+        };
+        let failed = false;
+        const fail = () => { if (failed) return; failed = true; v.replaceWith(Object.assign(new Image(), { className: "aq-v", src: sc.still, alt: "" })); show(); };
+        v.addEventListener("timeupdate", () => { if (v.duration && v.currentTime >= v.duration - .45) show(); });
+        v.addEventListener("ended", show);
+        v.addEventListener("error", fail);
+        const p = v.play(); if (p && p.catch) p.catch(fail);   // autoplay geweigerd → duim-plaatje
+        timer = setTimeout(show, 9000);                           // vangnet bij trage verbinding
+      } else {
+        timer = setTimeout(close, (B.T + 3.5) * 1000);
+        setTimeout(() => ov.querySelector("button")?.focus(), 400);
+      }
     });
   }
   window.AQAnim = { play, preload, sceneFor, SCENES };
