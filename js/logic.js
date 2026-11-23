@@ -77,5 +77,11 @@
   const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
+  // App open en er komt een melding binnen? Speel dan het aquariumgeluid af.
+  if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => {
+    if (e.data && e.data.type === "aq-push" && document.visibilityState === "visible") {
+      try { const a = new Audio("sounds/aquarium-melding.mp3"); a.volume = .8; a.play().catch(() => {}); } catch (x) {}
+    }
+  });
   window.AQ = { today, addDays, diff, nice, time, esc, DAYS, DAYS_LONG, eff, every, status, dueText, PARAMS, stat, range, tip, client, registerSW, pushState, enablePush, isStandalone, isIOS };
 })();
