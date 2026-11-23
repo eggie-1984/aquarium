@@ -151,6 +151,7 @@ async function auth() {
     return;
   }
   $("#who").textContent = "Ingelogd als " + ME.name;
+  $("#btnBeheer").hidden = $("#topBeheer").hidden = ME.role !== "beheer";
   showApp(true); route(); setup(); load();
 }
 $("#login").addEventListener("submit", async e => {
@@ -164,7 +165,7 @@ $("#login").addEventListener("submit", async e => {
 });
 $("#btnOut").addEventListener("click", async () => {
   try { const reg = await navigator.serviceWorker.getRegistration(), sub = reg && await reg.pushManager.getSubscription(); if (sub) await sb.rpc("aq_remove_sub", { p_endpoint: sub.endpoint, p_role: "kind" }); } catch (e) {}
-  await sb.auth.signOut(); ME = null; S.tasks = []; S.comps = []; S.meas = []; render(); auth();
+  await sb.auth.signOut(); ME = null; $("#btnBeheer").hidden = $("#topBeheer").hidden = true; S.tasks = []; S.comps = []; S.meas = []; render(); auth();
 });
 
 if (!sb) { $("#cfg").hidden = false; $("#prog").textContent = "Niet gekoppeld"; }

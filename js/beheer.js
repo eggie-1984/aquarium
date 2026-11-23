@@ -292,6 +292,20 @@ document.addEventListener("click", async e => {
   }
 });
 
+// ---------- Testmelding ----------
+async function testPush(target, btn) {
+  btn.disabled = true; $("#testTxt").textContent = "Versturen…";
+  try {
+    const r = await memberCall({ action: "test", target });
+    $("#testTxt").textContent = !r.devices
+      ? (target === "kinderen" ? "Er is nog geen kind met meldingen aan. Laat ze in de app op 'Meldingen aanzetten' tikken." : "Op geen enkel apparaat van jou staan de meldingen aan. Klik eerst op 'Meldingen aanzetten'.")
+      : `Verstuurd naar ${r.sent} van ${r.devices} apparaat${r.devices === 1 ? "" : "en"} (${r.names.join(", ")}).${r.failed.length ? " Niet gelukt bij: " + r.failed.join(", ") + "." : " Kijk op de telefoon!"}`;
+  } catch (e) { $("#testTxt").textContent = "Lukte niet: " + e.message; }
+  btn.disabled = false;
+}
+$("#btnTestMe").addEventListener("click", e => testPush("mij", e.target));
+$("#btnTestKids").addEventListener("click", e => testPush("kinderen", e.target));
+
 function route() {
   if ($("#nav").hidden) return;
   const t = (location.hash || "#overzicht").slice(1), ok = ["overzicht", "taken", "water", "logboek", "gezin", "instellingen"].includes(t) ? t : "overzicht";
