@@ -1,5 +1,5 @@
 // Service worker: app offline openen + pushmeldingen tonen
-const CACHE = "aquarium-v8";
+const CACHE = "aquarium-v10";
 const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js",
   "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/badge-96.png"];
 
@@ -17,6 +17,7 @@ self.addEventListener("fetch", e => {
 
 self.addEventListener("push", e => {
   let d = {}; try { d = e.data.json(); } catch (_) { d = { title: "Aquarium", body: e.data ? e.data.text() : "" }; }
+  self.clients.matchAll({ type: "window" }).then(list => list.forEach(c => c.postMessage({ type: "aq-push" })));
   e.waitUntil(self.registration.showNotification(d.title || "Aquarium", {
     body: d.body || "", icon: "icons/icon-192.png", badge: "icons/badge-96.png", tag: d.tag, renotify: true,
     data: { url: d.url || "./" }, vibrate: [120, 60, 120]
