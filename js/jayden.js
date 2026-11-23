@@ -98,7 +98,10 @@ $("#form").addEventListener("submit", async e => {
   const bad = AQ.PARAMS.some(p => r[p.k] != null && AQ.stat(p, r[p.k]) === "bad");
   await load();
   if (bad) toast("Opgeslagen. Kijk even wat er moet gebeuren!");
-  else AQAnim.play("test", { title: "Meting opgeslagen!", sub: `Lekker bezig, ${myName()}!` });
+  else {
+    const onlyTemp = AQ.PARAMS.every(p => p.k === "temp" ? r.temp != null : r[p.k] == null);   // alleen temperatuur ingevuld
+    AQAnim.play(onlyTemp ? "temp" : "test", { title: onlyTemp ? "Temperatuur genoteerd!" : "Meting opgeslagen!", sub: `Lekker bezig, ${myName()}!` });
+  }
 });
 
 function route() {

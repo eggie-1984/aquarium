@@ -8,10 +8,8 @@
   // Taken met een eigen filmpje (eindigt met een duim). Bij "minder beweging" of als de video niet laadt: het duim-plaatje.
   const film = (name, label) => ({ label, video: `vid/${name}.mp4`, poster: `vid/${name}-start.webp`, still: `vid/${name}-duim.webp`, dur: 5.15 });
   const SCENES = {
-    vis: { label: "Goudvis eet voer", hap: 2.05, frames: [
-      { src: "img/vis1.webp", d: 1.75, z: [1.04, 1.14], o: "70% 40%", tx: [-4, 1] },
-      { src: "img/vis2.webp", d: 1.35, z: [1.08, 1.1], o: "85% 42%", fx: "chomp" },
-      { src: "img/vis3.webp", d: 1.15, z: [1.02, 1.08], o: "55% 50%" }, thumb] },
+    vis: { ...film("vis", "Vissen voeren"), dur: 4.95 },
+    temp: film("temp", "Watertemperatuur meten"),
     garnalen: film("garnalen", "Garnalen voeren"),
     kijken: film("kijken", "Even kijken en tellen"),
     test: film("test", "Water testen"),

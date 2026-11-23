@@ -1,5 +1,5 @@
 // Service worker: app offline openen + pushmeldingen tonen
-const CACHE = "aquarium-v14";
+const CACHE = "aquarium-v15";
 const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js",
   "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/badge-96.png"];
 
