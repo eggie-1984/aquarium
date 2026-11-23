@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mijn aquarium</title>
+<meta name="theme-color" content="#0b4f6c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Aquarium">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="band top">
+ <div class="wrap">
+  <div class="head">
+   <div><h1 id="title">Mijn aquarium</h1><p class="sub" id="date"></p></div>
+   <div class="pill" id="prog">Laden…</div>
+  </div>
+  <div class="tank" aria-hidden="true">
+   <svg viewBox="0 0 800 230" preserveAspectRatio="xMidYMid slice">
+    <defs>
+     <linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2aa5c4"/><stop offset="1" stop-color="#0b5f7c"/></linearGradient>
+     <g id="fish"><path d="M0 0c10-12 34-12 44 0-10 12-34 12-44 0z"/><path class="tail" d="M42 0l14-10v20z"/><circle cx="9" cy="-2" r="2.4" fill="#fff"/><circle cx="9" cy="-2" r="1.2" fill="#063447"/></g>
+     <g id="shrimp"><path d="M0 0c4-9 16-11 24-5 4 3 4 9 0 11-7 3-15 1-19-3z"/><circle cx="21" cy="-3" r="1.4" fill="#222"/></g>
+     <path id="leaf" d="M0 0c-14-30-6-70 6-110 8 40 10 80-6 110z"/>
+    </defs>
+    <rect width="800" height="230" fill="url(#w)"/>
+    <rect width="800" height="14" fill="#fff" opacity=".12"/>
+    <g fill="#2e8b57"><use href="#leaf" x="70" y="205"/><use href="#leaf" x="92" y="210" transform="rotate(12 92 210)"/><use href="#leaf" x="640" y="205" transform="rotate(-8 640 205)"/><use href="#leaf" x="666" y="208"/><use href="#leaf" x="690" y="210" transform="rotate(14 690 210)"/></g>
+    <g fill="#5cbf6a"><use href="#leaf" x="700" y="208" transform="rotate(-14 700 208)"/><use href="#leaf" x="120" y="212" transform="rotate(-10 120 212)"/></g>
+    <path d="M0 200c120-14 230 8 360-4s250-12 440 2v32H0z" fill="#f2d7a6"/>
+    <path d="M0 212c140-8 260 6 400-2s260-6 400 4v16H0z" fill="#e2c08a"/>
+    <ellipse cx="470" cy="200" rx="46" ry="20" fill="#7d8a8f"/><ellipse cx="460" cy="194" rx="30" ry="10" fill="#9aa8ad"/>
+    <g class="bob" style="animation-delay:-0.0s"><g class="sw" fill="#3fa9f5" style="--dx:-170px;--d:19s;--l:-2s"><use href="#fish" x="230" y="70"/></g></g>
+    <g class="bob" style="animation-delay:-0.7s"><g class="sw" fill="#3fa9f5" style="--dx:-200px;--d:23s;--l:-9s"><use href="#fish" x="300" y="96"/></g></g>
+    <g class="bob" style="animation-delay:-1.4s"><g class="sw" fill="#3fa9f5" style="--dx:-300px;--d:27s;--l:-15s"><use href="#fish" x="520" y="60"/></g></g>
+    <g class="bob" style="animation-delay:-2.1s"><g class="sw" fill="#ff8c42" style="--dx:-280px;--d:21s;--l:-6s"><use href="#fish" x="560" y="118"/></g></g>
+    <g class="bob" style="animation-delay:-2.8s"><g class="sw" fill="#ff8c42" style="--dx:-220px;--d:25s;--l:-17s"><use href="#fish" x="360" y="140"/></g></g>
+    <g class="bob" style="animation-delay:-3.5s"><g class="sw" fill="#ffd166" style="--dx:-120px;--d:17s;--l:-11s"><use href="#fish" x="160" y="140"/></g></g>
+    <g class="sw" fill="#e63946" style="--dx:60px;--d:22s;--l:-4s"><use href="#shrimp" x="200" y="196"/></g>
+    <g class="sw" fill="#e63946" style="--dx:-50px;--d:26s;--l:-13s"><use href="#shrimp" x="452" y="182"/></g>
+    <g class="sw" fill="#e63946" style="--dx:70px;--d:30s;--l:-20s"><use href="#shrimp" x="560" y="200"/></g>
+    <g fill="#fff"><circle class="bub" cx="600" cy="200" r="5"/><circle class="bub" cx="612" cy="210" r="3" style="animation-delay:2s"/><circle class="bub" cx="596" cy="215" r="4" style="animation-delay:4s"/></g>
+   </svg>
+  </div>
+ </div>
+</header>
+<nav><div class="wrap" id="tabs">
+ <a href="#vandaag" data-t="vandaag">Vandaag</a><a href="#onderhoud" data-t="onderhoud">Onderhoud</a><a href="#water" data-t="water">Water</a><a href="#uitleg" data-t="uitleg">Uitleg</a>
+</div></nav>
+<main class="band"><div class="wrap">
+ <div class="card setup" id="setup" hidden>
+  <h3>Maak de app af</h3>
+  <p id="setupTxt">Zet de app op je beginscherm en zet meldingen aan, dan krijg je een seintje als je aquarium iets nodig heeft.</p>
+  <div class="row"><button class="btn light" id="btnInstall" hidden>App installeren</button><button class="btn" id="btnPush" hidden>Meldingen aanzetten</button></div>
+ </div>
+ <form class="card" id="login" hidden style="max-width:440px;margin:10px auto 24px">
+  <h2>Inloggen</h2>
+  <p class="hint" style="margin-top:-6px">Log één keer in, daarna onthoudt de app je.</p>
+  <label for="l-mail">E-mail</label><input id="l-mail" type="email" autocomplete="username" required>
+  <label for="l-pw" style="margin-top:10px">Wachtwoord</label><input id="l-pw" type="password" autocomplete="current-password" required>
+  <p class="late" id="l-err" style="font-weight:700;min-height:1em"></p>
+  <button class="btn" type="submit" id="l-btn">Inloggen</button>
+ </form>
+ <div class="card" id="cfg" hidden><h3>Nog niet gekoppeld</h3><p>Vul eerst je Supabase-gegevens in bij <b>js/config.js</b> (zie README).</p></div>
+
+ <section id="s-vandaag"><h2>Wat moet er vandaag gebeuren?</h2><div id="today"></div><h2 style="margin-top:24px">Binnenkort</h2><div id="soon"></div></section>
+ <section id="s-onderhoud"><h2>Onderhoud</h2><p class="hint" style="margin-top:-6px">Tik op een taak als je hem gedaan hebt. Per ongeluk? Tik nog een keer om het ongedaan te maken.</p><div id="maint"></div></section>
+ <section id="s-water">
+  <h2>Waterwaardes meten</h2>
+  <form class="card" id="form">
+   <div class="grid" id="fields"></div>
+   <div class="grid" style="margin-top:12px"><div><label for="f-date">Datum</label><input type="date" id="f-date"></div><div style="grid-column:span 2"><label for="f-note">Notitie <span class="hint">(mag leeg)</span></label><input id="f-note" maxlength="300" placeholder="Bijv. 1 garnaal verveld"></div></div>
+   <p class="hint">Vul in wat je teststrip laat zien. Lege vakjes mag. Meet altijd vóór het verversen.</p>
+   <button class="btn" type="submit" id="btnSave">Meting opslaan</button>
+  </form>
+  <div id="latest"></div>
+  <h3 style="margin:20px 0 8px">Eerdere metingen</h3>
+  <div class="card scroll" id="hist"></div>
+ </section>
+ <section id="s-uitleg" class="guide">
+  <h2>Zo houd je je vissen en garnalen blij</h2>
+  <div class="card"><h3>Voeren: de gouden regels</h3><ul>
+   <li>Vissen: 1 keer per dag een klein snufje. Wat ze niet binnen 2 minuten opeten is te veel.</li>
+   <li>Garnalen: 3 keer per week een klein beetje garnalenvoer. Ze eten ook algen en resten, dus ze hebben weinig nodig.</li>
+   <li>Eén dag per week niet voeren (vastendag). Dat is gezond en houdt het water schoon.</li>
+   <li>Te veel voer is het grootste gevaar in een klein aquarium: het rot en maakt het water giftig.</li>
+   <li>Op vakantie? Tot een week niet voeren is voor gezonde vissen geen probleem.</li></ul></div>
+  <div class="card"><h3>Water verversen</h3><ul>
+   <li>Elke week ongeveer een kwart van het water vervangen: bij jouw aquarium ongeveer <b id="kwart">13</b> liter.</li>
+   <li>Kraanwater altijd eerst met waterconditioner behandelen, en ongeveer even warm maken als het aquarium.</li>
+   <li>Langzaam bijgieten, bijvoorbeeld over je hand of een schoteltje. Garnalen schrikken van snelle veranderingen.</li>
+   <li>Gebruik een emmer en spons die alléén voor het aquarium zijn. Nooit zeep of schoonmaakmiddel.</li></ul></div>
+  <div class="card"><h3>Licht, warmte en filter</h3><ul>
+   <li>Lamp ongeveer 8 uur per dag aan, het liefst met een tijdschakelaar. Langer geeft algen.</li>
+   <li>Temperatuur tussen 22 en 26 °C. Geen zon op het aquarium.</li>
+   <li>Het filter staat altijd aan, ook 's nachts. Alleen even uit bij het schoonmaken.</li></ul></div>
+  <div class="card"><h3>Wat betekenen de waardes?</h3><ul>
+   <li><b>Ammoniak en nitriet</b> komen van poep en voerresten en zijn giftig. Ze moeten 0 zijn.</li>
+   <li><b>Nitraat</b> is minder giftig, maar mag niet te hoog worden. Water verversen haalt het weg.</li>
+   <li><b>GH</b> (hardheid) is belangrijk voor garnalen: zonder mineralen kunnen ze niet goed vervellen.</li>
+   <li><b>KH</b> houdt de <b>pH</b> stabiel. pH zegt of het water zuur of basisch is.</li></ul></div>
+  <div class="card"><div class="row" style="justify-content:space-between"><span><b id="who">Ingelogd</b><br><span class="hint">Alles wat je afvinkt komt op jouw naam.</span></span><button class="btn ghost" type="button" id="btnOut">Uitloggen</button></div></div>
+  <div class="card"><h3>Er is iets mis, wat nu?</h3><ul>
+   <li>Dood dier? Meteen eruit halen en het water testen.</li>
+   <li>Vissen happen boven aan het water of liggen stil? Test het water en ververs 30%.</li>
+   <li>Wit pluis of witte puntjes op een vis? Vraag hulp bij de dierenwinkel. Veel medicijnen zijn dodelijk voor garnalen, zeg dus altijd dat er garnalen in zitten.</li>
+   <li>Lege velletjes van garnalen zijn normaal: die hebben verveld. Laat ze liggen, ze eten ze zelf op.</li></ul></div>
+ </section>
+</div></main>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/anim.js"></script>
+<script src="js/jayden.js"></script>
+</body>
+</html>

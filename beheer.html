@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aquarium beheer</title>
+<meta name="theme-color" content="#063447">
+<link rel="manifest" href="manifest-beheer.webmanifest">
+<link rel="icon" href="icons/beheer-192.png">
+<link rel="apple-touch-icon" href="icons/beheer-apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Aq. beheer">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<style>
+.top{padding-bottom:clamp(18px,3vw,28px)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:rgba(255,255,255,.1);border-radius:14px;padding:12px 14px}
+.stat b{display:block;font:600 28px/1.1 Fredoka,sans-serif}
+.stat span{color:#bfe3ec;font-size:14px}
+.cal td,.cal th{text-align:center;padding:6px 4px;min-width:30px}
+.cal td:first-child,.cal th:first-child{text-align:left;min-width:120px;position:sticky;left:0;background:var(--card)}
+.c{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;font-size:13px;font-weight:800}
+.c.ok{background:var(--ok);color:#fff}.c.miss{background:var(--bad);color:#fff}.c.open{border:2px dashed var(--warn)}.c.off{color:var(--line)}
+.trow{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--soft);margin-left:6px;vertical-align:middle}
+.days label{display:inline-flex;align-items:center;margin:0 10px 8px 0;font-weight:600}
+.opt{display:flex;gap:8px;align-items:flex-start;font-weight:600;margin:8px 0}
+.opt input{margin-top:2px}
+.spark{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:12px}
+.spark svg{width:100%;height:70px;display:block}
+.day{margin:14px 0 4px;font-weight:800}
+.logi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.preview{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:8px}
+#login{max-width:420px;margin:40px auto}
+.ini{font-size:11px;font-weight:800}
+.by{color:var(--soft);font-weight:600}
+</style>
+</head>
+<body>
+<header class="band top">
+ <div class="wrap">
+  <div class="head" style="margin:0 0 14px"><div><h1 id="title">Aquarium beheer</h1><p class="sub" id="date"></p></div><a class="pill" style="color:#fff;text-decoration:none" href="index.html">Naar de app</a></div>
+  <div class="stats" id="stats"></div>
+ </div>
+</header>
+<nav id="nav" hidden><div class="wrap" id="tabs">
+ <a href="#overzicht" data-t="overzicht">Overzicht</a><a href="#taken" data-t="taken">Taken</a><a href="#water" data-t="water">Water</a><a href="#logboek" data-t="logboek">Logboek</a><a href="#gezin" data-t="gezin">Gezin</a><a href="#instellingen" data-t="instellingen">Instellingen</a>
+</div></nav>
+<main class="band"><div class="wrap">
+ <form class="card" id="login" hidden>
+  <h2>Inloggen</h2>
+  <p class="hint">Alleen voor beheer.</p>
+  <label for="l-mail">E-mail</label><input id="l-mail" type="email" autocomplete="username" required>
+  <label for="l-pw" style="margin-top:10px">Wachtwoord</label><input id="l-pw" type="password" autocomplete="current-password" required>
+  <p class="late" id="l-err" style="font-weight:700"></p>
+  <button class="btn" type="submit">Inloggen</button>
+ </form>
+ <div class="card" id="cfg" hidden><h3>Nog niet gekoppeld</h3><p>Vul eerst je Supabase-gegevens in bij <b>js/config.js</b> (zie README).</p></div>
+
+ <section id="s-overzicht">
+  <h2>Vandaag</h2><div id="o-today"></div>
+  <h2 style="margin-top:22px">Afgelopen 14 dagen</h2>
+  <div class="card scroll"><table class="cal" id="o-cal"></table><p class="hint" style="margin:8px 0 0"><span class="c ok ini">J</span> gedaan (letter van wie) &nbsp; <span class="c miss">✕</span> vergeten &nbsp; <span class="c open"></span> nog open &nbsp; <span class="c off">·</span> geen dag</p></div>
+  <h2 style="margin-top:22px">Onderhoud</h2>
+  <div class="card scroll"><table id="o-maint"></table></div>
+ </section>
+
+ <section id="s-taken">
+  <div class="trow"><h2>Taken</h2><button class="btn" id="btnNew">Nieuwe taak</button></div>
+  <p class="hint" style="margin-top:-6px">Pas aan wat Jayden moet doen, hoe vaak en wanneer hij een melding krijgt. Bij onderhoud kun je de volgende keer verschuiven.</p>
+  <div id="t-list"></div>
+ </section>
+
+ <section id="s-water">
+  <h2>Waterwaardes</h2>
+  <div class="spark" id="w-spark"></div>
+  <div class="card scroll" id="w-table"></div>
+ </section>
+
+ <section id="s-logboek">
+  <h2>Logboek</h2><p class="hint" style="margin-top:-6px">Alles wat Jayden de afgelopen 60 dagen heeft afgevinkt. Wissen zet bij onderhoud de planning terug als het de laatste keer was.</p>
+  <div class="card" id="g-list"></div>
+ </section>
+
+ <section id="s-gezin">
+  <div class="trow"><h2>Gezinsleden</h2><button class="btn" id="btnMember">Gezinslid toevoegen</button></div>
+  <p class="hint" style="margin-top:-6px">Iedereen met een account kan afvinken en metingen invullen. Jij ziet overal wie het gedaan heeft. Heeft een kind geen eigen e-mail? Gebruik dan je eigen Gmail met een plusje, bijvoorbeeld <b>jouwnaam+jayden@gmail.com</b>.</p>
+  <div id="m-list"><div class="card empty">Laden…</div></div>
+ </section>
+
+ <section id="s-instellingen">
+  <h2>Instellingen</h2>
+  <form class="card" id="setForm">
+   <div class="grid">
+    <div><label for="st-tank">Naam aquarium</label><input id="st-tank" required></div>
+    <div><label for="st-l">Liters water</label><input id="st-l" type="number" min="5" max="500" required></div>
+    <div><label for="st-r2">Tweede herinnering <span class="hint">(leeg = uit)</span></label><input id="st-r2" type="time"></div>
+   </div>
+   <p class="hint">De tweede herinnering gaat naar de kinderen én naar jou als er dan nog iets openstaat.</p>
+   <button class="btn" type="submit">Opslaan</button>
+  </form>
+  <div class="card"><h3>Meldingen voor jou</h3><p class="hint">Je krijgt een melding als onderhoud te laat is, als 's avonds nog niet alles gedaan is en als een waterwaarde niet goed is.</p>
+   <div class="row"><button class="btn" id="btnPush">Meldingen aanzetten</button><button class="btn ghost" id="btnPushOff" hidden>Meldingen uitzetten</button><button class="btn ghost" id="btnInstall" hidden>Beheer-app installeren</button></div>
+   <p class="hint" id="pushTxt"></p></div>
+  <div class="card"><div class="trow"><span id="who" class="hint"></span><button class="btn ghost" id="btnOut">Uitloggen</button></div></div>
+ </section>
+</div></main>
+
+<div class="modal" id="modal"><form class="card" id="edit"></form></div>
+<div class="modal" id="mmodal"><form class="card" id="medit"></form></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/anim.js"></script>
+<script src="js/beheer.js"></script>
+</body>
+</html>
