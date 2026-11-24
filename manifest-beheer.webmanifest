@@ -10,8 +10,8 @@
   "theme_color": "#063447",
   "lang": "nl",
   "icons": [
-    { "src": "icons/beheer-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/beheer-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/beheer-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/goudvis-beheer-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/goudvis-beheer-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/goudvis-beheer-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
