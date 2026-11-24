@@ -11,8 +11,6 @@
   const DAYS = ["zo", "ma", "di", "wo", "do", "vr", "za"];
   const DAYS_LONG = ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"];
   const eff = t => t.due_override || t.due_date;
-  // Meldtijd van een taak op een weekdag: eigen tijd voor die dag, anders de standaardtijd
-  const remindAt = (t, dow) => String((t.day_times && t.day_times[dow]) || t.remind_time || "").slice(0, 5);
   const every = n => n === 1 ? "elke dag" : n === 7 ? "elke week" : n === 14 ? "elke 2 weken" : n % 7 === 0 ? `elke ${n / 7} weken` : n === 30 || n === 31 ? "elke maand" : `elke ${n} dagen`;
 
   // Status van een taak op een dag. comps = completions van die dag.
@@ -85,5 +83,5 @@
       try { const a = new Audio("sounds/aquarium-melding.mp3"); a.volume = .8; a.play().catch(() => {}); } catch (x) {}
     }
   });
-  window.AQ = { today, addDays, diff, nice, time, esc, DAYS, DAYS_LONG, eff, remindAt, every, status, dueText, PARAMS, stat, range, tip, client, registerSW, pushState, enablePush, isStandalone, isIOS };
+  window.AQ = { today, addDays, diff, nice, time, esc, DAYS, DAYS_LONG, eff, every, status, dueText, PARAMS, stat, range, tip, client, registerSW, pushState, enablePush, isStandalone, isIOS };
 })();

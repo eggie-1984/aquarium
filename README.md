@@ -139,3 +139,13 @@ Zo breng je een update uit:
 Binnen een half uur, of zodra de app weer geopend wordt, krijgen Jayden en Kaitlyn de melding. Het huidige versienummer staat onderaan, bij **Uitloggen**.
 
 Vergeet je het versienummer te verhogen? Dan krijgt niemand de nieuwe versie te zien: de app blijft de bestanden van de vorige versie gebruiken.
+
+---
+
+## Bewoners tellen
+
+Bij **Even kijken en tellen** telt Jayden de dieren met een + en −. De app vergelijkt dat met de lijst van wat erin zit. Mist er een, dan krijgt hij eerst een seintje om nog eens te kijken. Daarna wordt de telling opgeslagen. In het beheer zie je onder **Overzicht** de laatste telling, met wat er niet gezien is.
+
+De lijst vul je in de app in (tabblad **Onderhoud**) of in het beheer (**Lijst aanpassen**).
+
+**Eenmalig nodig:** draai `supabase/bewoners.sql` in de **SQL Editor** van Supabase. Zolang je dat niet gedaan hebt, werkt de app gewoon zoals eerst, zonder tellen.

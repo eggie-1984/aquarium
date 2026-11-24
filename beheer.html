@@ -27,14 +27,6 @@
 .trow{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--soft);margin-left:6px;vertical-align:middle}
 .days label{display:inline-flex;align-items:center;margin:0 10px 8px 0;font-weight:600}
-.dayrows{display:flex;flex-direction:column;gap:6px;max-width:420px}
-.dayrow{display:grid;grid-template-columns:1fr 118px 40px;gap:8px;align-items:center}
-.dayrow label{display:flex;align-items:center;margin:0;font-weight:600;font-size:16px}
-.dayrow .dtime{min-height:40px;padding:6px 8px}
-.dayrow .dreset{min-height:36px;padding:4px 0;width:40px}
-.dayrow.off label{opacity:.55}.dayrow.off .dtime{opacity:.35}
-.dayrow.diff .dtime{border-color:var(--coral);font-weight:700}
-#e-dag.iv .dayrow input[type=checkbox]{display:none}
 .opt{display:flex;gap:8px;align-items:flex-start;font-weight:600;margin:8px 0}
 .opt input{margin-top:2px}
 .spark{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:12px}
@@ -50,7 +42,7 @@
 <body>
 <header class="band top">
  <div class="wrap">
-  <div class="head" style="margin:0 0 14px"><div><h1 id="title">Aquarium beheer</h1><p class="sub" id="date"></p></div><a class="pill" style="color:#fff;text-decoration:none" href="index.html">Naar de app</a></div>
+  <div class="head" style="margin:0 0 14px"><div><h1 id="title">Aquarium beheer</h1><p class="sub" id="date"></p></div><div class="row" style="gap:8px;justify-content:flex-end"><button class="pill" id="btnRefresh" type="button" style="color:#fff;border:0;font:700 16px Nunito,sans-serif;cursor:pointer;min-height:40px" title="Gegevens opnieuw ophalen">⟳ Verversen</button><a class="pill" style="color:#fff;text-decoration:none" href="index.html">Naar de app</a></div></div>
   <div class="stats" id="stats"></div>
  </div>
 </header>
@@ -70,6 +62,7 @@
 
  <section id="s-overzicht">
   <h2>Vandaag</h2><div id="o-today"></div>
+  <div id="o-bew" hidden><div class="trow" style="margin-top:22px"><h2>Bewoners en laatste telling</h2><button class="btn ghost" id="btnBewB" type="button">Lijst aanpassen</button></div><div id="o-bew-in"></div></div>
   <h2 style="margin-top:22px">Afgelopen 14 dagen</h2>
   <div class="card scroll"><table class="cal" id="o-cal"></table><p class="hint" style="margin:8px 0 0"><span class="c ok ini">J</span> gedaan (letter van wie) &nbsp; <span class="c miss">✕</span> vergeten &nbsp; <span class="c open"></span> nog open &nbsp; <span class="c off">·</span> geen dag</p></div>
   <h2 style="margin-top:22px">Onderhoud</h2>
@@ -132,6 +125,7 @@
 <script src="js/config.js"></script>
 <script src="js/logic.js"></script>
 <script src="js/anim.js"></script>
+<script src="js/bewoners.js"></script>
 <script src="js/beheer.js"></script>
 <script src="update.js"></script>
 </body>

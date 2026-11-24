@@ -3,13 +3,13 @@
 // NIEUWE VERSIE UITBRENGEN: verhoog VERSIE hieronder én "versie" in versie.json.
 // Iedereen blijft op de oude versie tot hij zelf op "Bijwerken" tikt.
 // Kiest iemand "Later", dan komt de vraag terug bij de volgende keer openen.
-const VERSIE = "2.3";
+const VERSIE = "2.2";
 const PREFIX = "aquarium-";
 const CACHE = PREFIX + VERSIE;
 const META = PREFIX + "meta";
 // App-bestanden die per versie bewaard worden (zodat iemand op "Later" de oude versie houdt).
 // update.js staat er bewust niet bij: die moet altijd de nieuwste zijn.
-const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js", "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/goudvis-192.png", "icons/goudvis-512.png", "icons/badge-96.png"];
+const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/bewoners.js", "js/jayden.js", "js/beheer.js", "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/goudvis-192.png", "icons/goudvis-512.png", "icons/badge-96.png"];
 const SHELL_URLS = new Set(SHELL.map(p => new URL(p, self.registration.scope).href));
 
 // ---------- Welke versie heeft de gebruiker goedgekeurd? ----------

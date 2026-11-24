@@ -2,7 +2,7 @@
 {
 const $ = s => document.querySelector(s);
 const sb = AQ.client();
-let S = { settings: { tank_name: "Mijn aquarium", liters: 54 }, tasks: [], comps: [], meas: [] };
+let S = { settings: { tank_name: "Mijn aquarium", liters: 54 }, tasks: [], comps: [], meas: [], bew: null };
 let loaded = false, ME = null;
 const myName = () => (ME && ME.name) || "kanjer";
 
@@ -20,6 +20,7 @@ async function load() {
   if (ta.error) { toast("Geen verbinding. Probeer het zo nog eens."); return; }
   if (st.data) S.settings = st.data;
   S.tasks = ta.data; S.comps = co.data || []; S.meas = me.data || [];
+  try { S.bew = await AQB.laad(sb); } catch (e) { S.bew = null; }   // null = tabel bestaat nog niet
   loaded = true; render();
 }
 
@@ -45,11 +46,30 @@ function render() {
   let h = feed && !(feed.days || []).includes(dow) ? `<div class="card fast"><h3>Vastendag</h3><p style="margin:4px 0 0">Vandaag krijgen de vissen geen eten. Dat is gezond voor hun buikjes en houdt het water schoon.</p></div>` : "";
   h += now.map(t => taskCard(t)).join("") || `<div class="card empty">Niks te doen vandaag. Geniet van je aquarium, ${AQ.esc(kid)}!</div>`;
   $("#today").innerHTML = h;
-  const soon = S.tasks.filter(t => { const s = AQ.status(t, S.comps); return t.kind === "interval" && !s.on && s.left <= 3; });
-  $("#soon").innerHTML = soon.map(t => taskCard(t)).join("") || `<div class="card empty">De komende dagen geen extra onderhoud.</div>`;
+  // Binnenkort: onderhoud van de komende 7 dagen; is er niets, dan in elk geval de eerstvolgende
+  const later = S.tasks.filter(t => t.kind === "interval" && !AQ.status(t, S.comps).on)
+    .sort((a, b) => AQ.status(a, S.comps).left - AQ.status(b, S.comps).left);
+  const soon = later.filter(t => AQ.status(t, S.comps).left <= 7);
+  $("#soon").innerHTML = (soon.length ? soon : later.slice(0, 1)).map(t => taskCard(t)).join("")
+    || `<div class="card empty">${loaded ? "Er staat geen onderhoud gepland." : "Laden…"}</div>`;
   $("#maint").innerHTML = S.tasks.filter(t => t.kind === "interval").sort((a, b) => AQ.status(a, S.comps).left - AQ.status(b, S.comps).left).map(t => taskCard(t, true)).join("");
-  renderWater();
+  renderWater(); renderBew();
 }
+
+function renderBew() {
+  const el = $("#bewoners"); if (!el) return;
+  el.hidden = S.bew === null;
+  if (S.bew === null) return;
+  const lijst = S.bew.filter(r => r.aantal > 0);
+  el.innerHTML = `<h3>Wie zitten er in mijn aquarium?</h3>${lijst.length
+    ? `<p style="margin:6px 0 10px">${lijst.map(r => `<b>${r.aantal}</b> ${AQ.esc(r.naam)}`).join(" · ")}</p>`
+    : `<p class="hint" style="font-size:15px;margin:6px 0 10px">Nog niets ingevuld. Schrijf op welke dieren erin zitten, dan kun je ze bij het tellen controleren.</p>`}
+    <button class="btn ghost" type="button" id="btnBew">${lijst.length ? "Lijst aanpassen" : "Lijst invullen"}</button>`;
+}
+document.addEventListener("click", async e => {
+  if (!e.target.closest("#btnBew") || !sb) return;
+  if (await AQB.lijst(sb)) { toast("Lijst opgeslagen"); load(); }
+});
 
 function renderWater() {
   const L = S.meas[0];
@@ -75,7 +95,14 @@ document.addEventListener("click", async e => {
     return load();
   }
   const scene = AQAnim.sceneFor(t);
-  const anim = AQAnim.play(scene, MSG(scene, myName(), t));
+  let msg = MSG(scene, myName(), t);
+  if (scene === "kijken" && S.bew !== null) {
+    const r = await AQB.tellen(sb);
+    if (!r) { b.classList.remove("busy"); return; }        // gesloten zonder opslaan
+    if (!r.alles_er) msg = { title: "Goed gekeken!", sub: `Je telling is opgeslagen. Zeg het even tegen papa, ${myName()}.` };
+    else msg = { title: "Iedereen is er!", sub: `Goed geteld, ${myName()}!` };
+  }
+  const anim = AQAnim.play(scene, msg);
   const { error } = await sb.rpc("aq_complete", { p_task: t.id });
   if (error) { toast("Opslaan lukte niet. Heb je internet?"); b.classList.remove("busy"); return; }
   await load(); await anim;
