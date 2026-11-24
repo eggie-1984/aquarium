@@ -85,9 +85,34 @@ const MSG = (scene, kid, t) =>
   scene === "garnalen" ? { title: "De garnalen smullen!", sub: `Goed gedaan, ${kid}!` } :
   { title: "Duim omhoog!", sub: `${t.title}: klaar. Goed gedaan, ${kid}!` };
 
+// Bevestigen voordat een afgevinkte taak weer open gezet wordt
+function vraagZeker(t, s) {
+  return new Promise(klaar => {
+    const ov = document.createElement("div");
+    ov.className = "modal on"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+    const wie = s.row && s.row.done_by_name ? ` door ${AQ.esc(s.row.done_by_name)}` : "";
+    const hoe = s.row && s.row.done_at ? ` om ${AQ.time(s.row.done_at)}` : "";
+    ov.innerHTML = `<div class="card" style="text-align:center">
+      <h2 style="margin:0 0 6px">Weer uitvinken?</h2>
+      <p style="margin:0 0 6px"><b>${AQ.esc(t.title)}</b> is vandaag al gedaan${wie}${hoe}.</p>
+      <p class="hint" style="font-size:15px;margin:0 0 16px">Wil je het echt weer open zetten? Doe dat alleen als het nog niet gedaan is.</p>
+      <div class="row" style="justify-content:center"><button class="btn" type="button" data-nee style="flex:1">Nee, laten staan</button><button class="btn ghost" type="button" data-ja style="flex:1;min-height:44px">Ja, uitvinken</button></div></div>`;
+    const sluit = v => { ov.remove(); document.removeEventListener("keydown", esc); klaar(v); };
+    const esc = e => { if (e.key === "Escape") sluit(false); };
+    ov.addEventListener("click", e => {
+      if (e.target.closest("[data-ja]")) sluit(true);
+      else if (e.target.closest("[data-nee]") || e.target === ov) sluit(false);
+    });
+    document.addEventListener("keydown", esc);
+    document.body.appendChild(ov);
+    ov.querySelector("[data-nee]").focus();
+  });
+}
+
 document.addEventListener("click", async e => {
   const b = e.target.closest(".task[data-id]"); if (!b || !sb) return;
   const t = S.tasks.find(x => x.id === b.dataset.id), s = AQ.status(t, S.comps);
+  if (s.done && !(await vraagZeker(t, s))) return;       // per ongeluk getikt: niets doen
   b.classList.add("busy");
   if (s.done) {
     const { error } = await sb.rpc("aq_undo", { p_id: s.row.id });
