@@ -138,8 +138,8 @@ function renderLog() {
 
 // Dagen met een eigen meldtijd, bv. " (za 10:00, zo 10:00)"
 function afwijkend(t) {
-  if (t.kind !== "dagelijks" || !t.day_times) return "";
-  const l = [1, 2, 3, 4, 5, 6, 0].filter(d => t.days.includes(d) && t.day_times[d] && tt(t.day_times[d]) !== tt(t.remind_time)).map(d => `${AQ.DAYS[d]} ${tt(t.day_times[d])}`);
+  if (!t.day_times) return "";
+  const l = [1, 2, 3, 4, 5, 6, 0].filter(d => (t.kind !== "dagelijks" || t.days.includes(d)) && t.day_times[d] && tt(t.day_times[d]) !== tt(t.remind_time)).map(d => `${AQ.DAYS[d]} ${tt(t.day_times[d])}`);
   return l.length ? ` (${l.join(", ")})` : "";
 }
 
@@ -158,11 +158,6 @@ function openEdit(t) {
     <div><label for="e-time">Melding om</label><input id="e-time" type="time" value="${tt(t.remind_time)}"></div>
     <div><label for="e-anim">Animatie <button type="button" class="btn ghost" id="e-play" style="min-height:28px;padding:2px 10px;margin-left:6px">Bekijk</button></label><select id="e-anim">${Object.entries(AQAnim.SCENES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("")}</select></div>
    </div>
-   <div id="e-dag" style="margin-top:12px"><label>Op welke dagen en hoe laat?</label>
-    <div class="hint" style="margin-bottom:6px">Pas de tijd aan bij een dag die afwijkt van de standaard (Melding om).</div>
-    <div class="dayrows">${[1, 2, 3, 4, 5, 6, 0].map(d => `<div class="dayrow" data-d="${d}"><label><input type="checkbox" value="${d}" ${t.days.includes(d) ? "checked" : ""}>${AQ.DAYS_LONG[d]}</label>
-     <input type="time" class="dtime" aria-label="Meldtijd ${AQ.DAYS_LONG[d]}" value="${tt((t.day_times && t.day_times[d]) || t.remind_time)}">
-     <button type="button" class="btn ghost dreset" title="Terug naar standaardtijd" aria-label="Terug naar standaardtijd">↺</button></div>`).join("")}</div></div>
    <div id="e-int" style="margin-top:12px">
     <div class="grid"><div><label for="e-every">Elke … dagen</label><input id="e-every" type="number" min="1" max="365" value="${t.every_days || 7}"></div>
     <div><label for="e-next">Volgende keer</label><input id="e-next" type="date" value="${AQ.eff(t) || AQ.today()}"></div></div>
@@ -170,6 +165,11 @@ function openEdit(t) {
     <label class="opt"><input type="radio" name="mode" value="ritme"><span>Nieuw ritme vanaf deze datum<br><span class="hint">Alle volgende keren schuiven mee</span></span></label>`}
     <div class="preview" id="e-prev"></div>
    </div>
+   <div id="e-dag" style="margin-top:12px"><label id="e-dag-l">Op welke dagen en hoe laat?</label>
+    <div class="hint" id="e-dag-h" style="margin-bottom:6px">Pas de tijd aan bij een dag die afwijkt van de standaard (Melding om).</div>
+    <div class="dayrows">${[1, 2, 3, 4, 5, 6, 0].map(d => `<div class="dayrow" data-d="${d}"><label><input type="checkbox" value="${d}" ${t.days.includes(d) ? "checked" : ""}>${AQ.DAYS_LONG[d]}</label>
+     <input type="time" class="dtime" aria-label="Meldtijd ${AQ.DAYS_LONG[d]}" value="${tt((t.day_times && t.day_times[d]) || t.remind_time)}">
+     <button type="button" class="btn ghost dreset" title="Terug naar standaardtijd" aria-label="Terug naar standaardtijd">↺</button></div>`).join("")}</div></div>
    <label class="opt" style="margin-top:12px"><input type="checkbox" id="e-active" ${t.active ? "checked" : ""}><span>Actief (Jayden ziet deze taak)</span></label>
    <div class="row" style="margin-top:14px;justify-content:space-between"><div class="row"><button class="btn" type="submit">Opslaan</button><button class="btn ghost" type="button" id="e-cancel">Annuleren</button></div>${isNew ? "" : '<button class="btn ghost" type="button" id="e-del" style="color:var(--bad)">Verwijderen</button>'}</div>`;
   $("#e-kind").value = t.kind; $("#e-anim").value = AQAnim.sceneFor(t);
@@ -178,9 +178,12 @@ function openEdit(t) {
 }
 // Dagregels bijwerken: uitgevinkte dag grijs, afwijkende tijd gemarkeerd
 function dayRows() {
-  const std = $("#e-time").value;
+  const std = $("#e-time").value, iv = $("#e-kind").value === "interval";
+  $("#e-dag").classList.toggle("iv", iv);
+  $("#e-dag-l").textContent = iv ? "Andere meldtijd op een bepaalde dag?" : "Op welke dagen en hoe laat?";
+  $("#e-dag-h").textContent = iv ? "Valt de taak op een dag hieronder, dan komt de melding op die tijd. Bijvoorbeeld later in het weekend." : "Pas de tijd aan bij een dag die afwijkt van de standaard (Melding om).";
   document.querySelectorAll("#e-dag .dayrow").forEach(r => {
-    const on = r.querySelector("input[type=checkbox]").checked, ti = r.querySelector(".dtime");
+    const on = iv || r.querySelector("input[type=checkbox]").checked, ti = r.querySelector(".dtime");
     if (!ti.value) ti.value = std;
     const diff = on && std && ti.value !== std;
     r.classList.toggle("off", !on); r.classList.toggle("diff", diff);
@@ -196,7 +199,7 @@ function editToggle(e) {
   }
   if (document.querySelector("#e-dag .dayrow")) dayRows();
   const iv = $("#e-kind").value === "interval";
-  $("#e-dag").hidden = iv; $("#e-int").hidden = !iv;
+  $("#e-int").hidden = !iv;
   if (!iv) return;
   const n = Math.max(1, +$("#e-every").value || 7), next = $("#e-next").value || AQ.today();
   const mode = document.querySelector('input[name=mode]:checked')?.value || "ritme";
@@ -230,6 +233,10 @@ $("#edit").addEventListener("submit", async e => {
     row.every_days = null; row.due_date = null; row.due_override = null;
   } else {
     row.day_times = {};
+    for (const d of [0, 1, 2, 3, 4, 5, 6]) {
+      const v = document.querySelector(`#e-dag .dayrow[data-d="${d}"] .dtime`).value;
+      if (v && v !== row.remind_time) row.day_times[d] = v;
+    }
     row.every_days = Math.max(1, +$("#e-every").value || 7);
     const next = $("#e-next").value || AQ.today();
     const mode = document.querySelector('input[name=mode]:checked')?.value || "ritme";
