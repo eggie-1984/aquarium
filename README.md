@@ -119,3 +119,21 @@ Bij **Taken > Aanpassen** kies je bij onderhoud een nieuwe datum. Daarna kies je
 ## Later iets aanpassen aan de bestanden?
 
 Verhoog in `sw.js` het versienummer (bijvoorbeeld `aquarium-v5` → `aquarium-v6`). Dan halen de telefoons de nieuwe versie op.
+
+---
+
+## Een nieuwe versie uitbrengen
+
+De app laat zelf zien als er een nieuwe versie op GitHub staat. Onderin verschijnt dan **Nieuwe versie beschikbaar** met de knoppen **Bijwerken** en **Later**.
+
+Zo breng je een update uit:
+
+1. Pas je bestanden aan.
+2. Verhoog het versienummer op **twee** plekken, met hetzelfde nummer:
+   - `sw.js`, bovenaan: `const VERSIE = "2.1";`
+   - `versie.json`: `"versie": "2.1"`, en zet bij `"nieuw"` in één zin wat er veranderd is.
+3. Upload de bestanden naar GitHub.
+
+Binnen een half uur, of zodra de app weer geopend wordt, krijgen Jayden en Kaitlyn de melding. Het huidige versienummer staat onderaan, bij **Uitloggen**.
+
+Vergeet je het versienummer te verhogen? Dan krijgt niemand de nieuwe versie te zien. De app blijft dan de bestanden van de vorige versie gebruiken.
