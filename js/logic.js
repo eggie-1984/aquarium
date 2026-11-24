@@ -55,7 +55,7 @@
   // Service worker + push
   async function registerSW() {
     if (!("serviceWorker" in navigator)) return null;
-    try { return await navigator.serviceWorker.register("sw.js"); } catch (e) { return null; }
+    try { return await navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }); } catch (e) { return null; }
   }
   const b64 = s => { const p = "=".repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
   async function pushState() {
