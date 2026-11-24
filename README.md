@@ -126,6 +126,8 @@ Verhoog in `sw.js` het versienummer (bijvoorbeeld `aquarium-v5` → `aquarium-v6
 
 De app laat zelf zien als er een nieuwe versie op GitHub staat. Onderin verschijnt dan **Nieuwe versie beschikbaar** met de knoppen **Bijwerken** en **Later**.
 
+Kiest iemand **Later**, dan blijft hij op de oude versie en komt de vraag terug bij elke keer dat de app geopend wordt, tot hij op **Bijwerken** tikt.
+
 Zo breng je een update uit:
 
 1. Pas je bestanden aan.
@@ -136,4 +138,4 @@ Zo breng je een update uit:
 
 Binnen een half uur, of zodra de app weer geopend wordt, krijgen Jayden en Kaitlyn de melding. Het huidige versienummer staat onderaan, bij **Uitloggen**.
 
-Vergeet je het versienummer te verhogen? Dan krijgt niemand de nieuwe versie te zien. De app blijft dan de bestanden van de vorige versie gebruiken.
+Vergeet je het versienummer te verhogen? Dan krijgt niemand de nieuwe versie te zien: de app blijft de bestanden van de vorige versie gebruiken.

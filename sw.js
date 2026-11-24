@@ -1,39 +1,88 @@
-// Service worker: app offline openen + pushmeldingen tonen + updatemelding
+// Service worker: app installeerbaar, pushmeldingen en versiebeheer.
 //
 // NIEUWE VERSIE UITBRENGEN: verhoog VERSIE hieronder én "versie" in versie.json.
-// De app laat dan onderin "Nieuwe versie beschikbaar" zien met een knop Bijwerken.
-const VERSIE = "2.0";
-const CACHE = "aquarium-" + VERSIE;
-const SHELL = ["./", "index.html", "beheer.html", "update.js", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js",
-  "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/goudvis-192.png", "icons/goudvis-512.png", "icons/badge-96.png"];
+// Iedereen blijft op de oude versie tot hij zelf op "Bijwerken" tikt.
+// Kiest iemand "Later", dan komt de vraag terug bij de volgende keer openen.
+const VERSIE = "2.1";
+const PREFIX = "aquarium-";
+const CACHE = PREFIX + VERSIE;
+const META = PREFIX + "meta";
+// App-bestanden die per versie bewaard worden (zodat iemand op "Later" de oude versie houdt).
+// update.js staat er bewust niet bij: die moet altijd de nieuwste zijn.
+const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js", "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/goudvis-192.png", "icons/goudvis-512.png", "icons/badge-96.png"];
 const SHELL_URLS = new Set(SHELL.map(p => new URL(p, self.registration.scope).href));
 
-// Nieuwe versie alvast ophalen, maar pas overnemen als er op "Bijwerken" getikt wordt
+// ---------- Welke versie heeft de gebruiker goedgekeurd? ----------
+async function leesAkkoord() {
+  const r = await (await caches.open(META)).match("akkoord");
+  return r ? r.text() : null;
+}
+async function zetAkkoord(v) {
+  await (await caches.open(META)).put("akkoord", new Response(v));
+}
+async function opruimen(houd) {
+  const namen = await caches.keys();
+  await Promise.all(namen.filter(n => !houd.includes(n)).map(n => caches.delete(n)));
+}
+
+// ---------- Installeren: nieuwe versie alvast ophalen, nog niet gebruiken ----------
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(p => new Request(p, { cache: "reload" })))));
-});
-self.addEventListener("message", e => {
-  if (!e.data) return;
-  if (e.data.type === "SKIP_WAITING") self.skipWaiting();
-  if (e.data.type === "GET_VERSION" && e.ports[0]) e.ports[0].postMessage(VERSIE);
-});
-self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(p =>
+    fetch(new Request(p, { cache: "reload" })).then(r => { if (r.ok) return c.put(new URL(p, self.registration.scope).href, r); }).catch(() => {})
+  ))));
 });
 
+self.addEventListener("activate", e => {
+  e.waitUntil((async () => {
+    let akkoord = await leesAkkoord();
+    if (!akkoord) {
+      // Eerste keer met dit systeem: had iemand nog een oude versie in de cache, dan blijft die staan
+      const oud = (await caches.keys()).filter(n => n.startsWith(PREFIX) && n !== META && n !== CACHE && /^\d+(\.\d+)*$/.test(n.slice(PREFIX.length)));
+      akkoord = oud.length ? oud.sort().pop().slice(PREFIX.length) : VERSIE;
+      await zetAkkoord(akkoord);
+    }
+    await opruimen([CACHE, META, PREFIX + akkoord]);
+    await self.clients.claim();
+  })());
+});
+
+// ---------- Berichten van de app ----------
+self.addEventListener("message", e => {
+  const d = e.data || {}, poort = e.ports && e.ports[0];
+  if (d.type === "STATUS") {
+    e.waitUntil(leesAkkoord().then(a => poort && poort.postMessage({ akkoord: a || VERSIE, versie: VERSIE })));
+  }
+  if (d.type === "GET_VERSION") {
+    e.waitUntil(leesAkkoord().then(a => poort && poort.postMessage(a || VERSIE)));
+  }
+  if (d.type === "BIJWERKEN" || d.type === "SKIP_WAITING") {
+    e.waitUntil((async () => {
+      await zetAkkoord(VERSIE);
+      await opruimen([CACHE, META]);
+      self.skipWaiting();
+      if (poort) poort.postMessage("ok");
+    })());
+  }
+});
+
+// ---------- Ophalen ----------
 self.addEventListener("fetch", e => {
   const req = e.request, url = new URL(req.url);
-  if (req.method !== "GET" || url.origin !== location.origin) return;   // Supabase e.d. altijd live
-  if (url.pathname.endsWith("/versie.json")) return;                    // altijd vers van GitHub
+  if (req.method !== "GET" || url.origin !== location.origin) return;   // Supabase e.d. ongemoeid
   if (req.headers.has("range")) return;                                 // video's laten streamen
+  if (url.pathname.endsWith("/versie.json")) return;                    // altijd vers
 
-  // App-bestanden (html, js, css): uit de cache van déze versie, zodat alles bij elkaar past
   const key = url.origin + url.pathname;
   if (SHELL_URLS.has(key)) {
-    e.respondWith(caches.open(CACHE).then(c => c.match(key)).then(hit => hit || fetch(req)));
+    // App-bestanden van de goedgekeurde versie
+    e.respondWith((async () => {
+      const akkoord = (await leesAkkoord()) || VERSIE;
+      const hit = await (await caches.open(PREFIX + akkoord)).match(key)
+               || await (await caches.open(CACHE)).match(key);
+      return hit || fetch(req, { cache: "no-cache" });
+    })());
     return;
   }
-
   // Overige bestanden (plaatjes, video's, geluid): eerst netwerk, anders uit de cache
   e.respondWith(fetch(req).then(r => { if (r.status === 200) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}); } return r; })
     .catch(() => caches.match(req, { ignoreSearch: true })));
