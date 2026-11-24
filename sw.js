@@ -1,7 +1,7 @@
 // Service worker: app offline openen + pushmeldingen tonen
-const CACHE = "aquarium-v17";
+const CACHE = "aquarium-v18";
 const SHELL = ["./", "index.html", "beheer.html", "css/app.css", "js/config.js", "js/logic.js", "js/anim.js", "js/jayden.js", "js/beheer.js",
-  "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/badge-96.png"];
+  "manifest.webmanifest", "manifest-beheer.webmanifest", "icons/goudvis-192.png", "icons/goudvis-512.png", "icons/badge-96.png"];
 
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
@@ -19,7 +19,7 @@ self.addEventListener("push", e => {
   let d = {}; try { d = e.data.json(); } catch (_) { d = { title: "Aquarium", body: e.data ? e.data.text() : "" }; }
   self.clients.matchAll({ type: "window" }).then(list => list.forEach(c => c.postMessage({ type: "aq-push" })));
   e.waitUntil(self.registration.showNotification(d.title || "Aquarium", {
-    body: d.body || "", icon: "icons/icon-192.png", badge: "icons/badge-96.png", tag: d.tag, renotify: true,
+    body: d.body || "", icon: "icons/goudvis-192.png", badge: "icons/badge-96.png", tag: d.tag, renotify: true,
     data: { url: d.url || "./" }, vibrate: [120, 60, 120]
   }));
 });
