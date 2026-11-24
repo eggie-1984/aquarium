@@ -27,6 +27,13 @@
 .trow{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--soft);margin-left:6px;vertical-align:middle}
 .days label{display:inline-flex;align-items:center;margin:0 10px 8px 0;font-weight:600}
+.dayrows{display:flex;flex-direction:column;gap:6px;max-width:420px}
+.dayrow{display:grid;grid-template-columns:1fr 118px 40px;gap:8px;align-items:center}
+.dayrow label{display:flex;align-items:center;margin:0;font-weight:600;font-size:16px}
+.dayrow .dtime{min-height:40px;padding:6px 8px}
+.dayrow .dreset{min-height:36px;padding:4px 0;width:40px}
+.dayrow.off label{opacity:.55}.dayrow.off .dtime{opacity:.35}
+.dayrow.diff .dtime{border-color:var(--coral);font-weight:700}
 .opt{display:flex;gap:8px;align-items:flex-start;font-weight:600;margin:8px 0}
 .opt input{margin-top:2px}
 .spark{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:12px}

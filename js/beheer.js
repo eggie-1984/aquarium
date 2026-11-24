@@ -79,7 +79,7 @@ function render() {
 
   // Vandaag
   $("#o-today").innerHTML = now.length ? `<div class="card">${now.map(t => { const s = AQ.status(t, todayComps);
-    return `<div class="res"><span class="dot d-${s.done ? "ok" : s.left < 0 ? "bad" : "warn"}"></span><div style="flex:1"><b>${AQ.esc(t.title)}</b><div class="hint">${s.done ? "Gedaan om " + AQ.time(s.row.done_at) + (s.row.done_by_name ? " door " + AQ.esc(s.row.done_by_name) : "") : s.left < 0 ? `Nog open, ${-s.left} dag${s.left === -1 ? "" : "en"} te laat` : "Nog open · melding om " + tt(t.remind_time)}</div></div></div>`; }).join("")}</div>`
+    return `<div class="res"><span class="dot d-${s.done ? "ok" : s.left < 0 ? "bad" : "warn"}"></span><div style="flex:1"><b>${AQ.esc(t.title)}</b><div class="hint">${s.done ? "Gedaan om " + AQ.time(s.row.done_at) + (s.row.done_by_name ? " door " + AQ.esc(s.row.done_by_name) : "") : s.left < 0 ? `Nog open, ${-s.left} dag${s.left === -1 ? "" : "en"} te laat` : "Nog open · melding om " + AQ.remindAt(t, new Date().getDay())}</div></div></div>`; }).join("")}</div>`
     : `<div class="card empty">Vandaag staat er niets op de lijst.</div>`;
 
   // Kalender 14 dagen
@@ -104,7 +104,7 @@ function render() {
       ? (t.days.length === 7 ? "Elke dag" : t.days.length ? t.days.slice().sort().map(d => AQ.DAYS[d]).join(", ") : "Geen dagen gekozen")
       : `${AQ.every(t.every_days)[0].toUpperCase() + AQ.every(t.every_days).slice(1)} · volgende keer ${AQ.nice(AQ.eff(t))}${t.due_override ? " (eenmalig verschoven, ritme " + AQ.nice(t.due_date) + ")" : ""}`;
     return `<div class="card"><div class="trow"><h3>${AQ.esc(t.title)}<span class="tag">${t.kind}</span>${t.active ? "" : '<span class="tag">uit</span>'}</h3><button class="btn ghost" data-edit="${t.id}">Aanpassen</button></div>
-      <p class="hint" style="font-size:15px;margin:6px 0 4px">${AQ.esc(t.description)}</p><div style="font-weight:700;font-size:14px">${sum} · melding ${tt(t.remind_time) || "uit"}</div></div>`; }).join("");
+      <p class="hint" style="font-size:15px;margin:6px 0 4px">${AQ.esc(t.description)}</p><div style="font-weight:700;font-size:14px">${sum} · melding ${tt(t.remind_time) || "uit"}${afwijkend(t)}</div></div>`; }).join("");
 
   renderWater(); renderLog();
   $("#st-tank").value = B.settings.tank_name || ""; $("#st-l").value = B.settings.liters || 54; $("#st-r2").value = tt(B.settings.second_remind);
@@ -136,6 +136,13 @@ function renderLog() {
     || '<p class="empty">Nog niets afgevinkt.</p>';
 }
 
+// Dagen met een eigen meldtijd, bv. " (za 10:00, zo 10:00)"
+function afwijkend(t) {
+  if (t.kind !== "dagelijks" || !t.day_times) return "";
+  const l = [1, 2, 3, 4, 5, 6, 0].filter(d => t.days.includes(d) && t.day_times[d] && tt(t.day_times[d]) !== tt(t.remind_time)).map(d => `${AQ.DAYS[d]} ${tt(t.day_times[d])}`);
+  return l.length ? ` (${l.join(", ")})` : "";
+}
+
 // ---------- Taak bewerken ----------
 let editing = null;
 function openEdit(t) {
@@ -151,7 +158,11 @@ function openEdit(t) {
     <div><label for="e-time">Melding om</label><input id="e-time" type="time" value="${tt(t.remind_time)}"></div>
     <div><label for="e-anim">Animatie <button type="button" class="btn ghost" id="e-play" style="min-height:28px;padding:2px 10px;margin-left:6px">Bekijk</button></label><select id="e-anim">${Object.entries(AQAnim.SCENES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("")}</select></div>
    </div>
-   <div id="e-dag" style="margin-top:12px"><label>Op welke dagen?</label><div class="days">${[1, 2, 3, 4, 5, 6, 0].map(d => `<label><input type="checkbox" value="${d}" ${t.days.includes(d) ? "checked" : ""}>${AQ.DAYS_LONG[d]}</label>`).join("")}</div></div>
+   <div id="e-dag" style="margin-top:12px"><label>Op welke dagen en hoe laat?</label>
+    <div class="hint" style="margin-bottom:6px">Pas de tijd aan bij een dag die afwijkt van de standaard (Melding om).</div>
+    <div class="dayrows">${[1, 2, 3, 4, 5, 6, 0].map(d => `<div class="dayrow" data-d="${d}"><label><input type="checkbox" value="${d}" ${t.days.includes(d) ? "checked" : ""}>${AQ.DAYS_LONG[d]}</label>
+     <input type="time" class="dtime" aria-label="Meldtijd ${AQ.DAYS_LONG[d]}" value="${tt((t.day_times && t.day_times[d]) || t.remind_time)}">
+     <button type="button" class="btn ghost dreset" title="Terug naar standaardtijd" aria-label="Terug naar standaardtijd">↺</button></div>`).join("")}</div></div>
    <div id="e-int" style="margin-top:12px">
     <div class="grid"><div><label for="e-every">Elke … dagen</label><input id="e-every" type="number" min="1" max="365" value="${t.every_days || 7}"></div>
     <div><label for="e-next">Volgende keer</label><input id="e-next" type="date" value="${AQ.eff(t) || AQ.today()}"></div></div>
@@ -162,9 +173,28 @@ function openEdit(t) {
    <label class="opt" style="margin-top:12px"><input type="checkbox" id="e-active" ${t.active ? "checked" : ""}><span>Actief (Jayden ziet deze taak)</span></label>
    <div class="row" style="margin-top:14px;justify-content:space-between"><div class="row"><button class="btn" type="submit">Opslaan</button><button class="btn ghost" type="button" id="e-cancel">Annuleren</button></div>${isNew ? "" : '<button class="btn ghost" type="button" id="e-del" style="color:var(--bad)">Verwijderen</button>'}</div>`;
   $("#e-kind").value = t.kind; $("#e-anim").value = AQAnim.sceneFor(t);
+  editing.std = $("#e-time").value; dayRows();
   editToggle(); $("#modal").classList.add("on"); $("#e-title").focus();
 }
-function editToggle() {
+// Dagregels bijwerken: uitgevinkte dag grijs, afwijkende tijd gemarkeerd
+function dayRows() {
+  const std = $("#e-time").value;
+  document.querySelectorAll("#e-dag .dayrow").forEach(r => {
+    const on = r.querySelector("input[type=checkbox]").checked, ti = r.querySelector(".dtime");
+    if (!ti.value) ti.value = std;
+    const diff = on && std && ti.value !== std;
+    r.classList.toggle("off", !on); r.classList.toggle("diff", diff);
+    ti.disabled = !on; r.querySelector(".dreset").hidden = !diff;
+  });
+}
+function editToggle(e) {
+  // Standaardtijd gewijzigd: dagen die de standaard volgden schuiven mee
+  if (e && e.target && e.target.id === "e-time" && editing) {
+    const nw = $("#e-time").value;
+    document.querySelectorAll("#e-dag .dtime").forEach(i => { if (i.value === editing.std || !i.value) i.value = nw; });
+    editing.std = nw;
+  }
+  if (document.querySelector("#e-dag .dayrow")) dayRows();
   const iv = $("#e-kind").value === "interval";
   $("#e-dag").hidden = iv; $("#e-int").hidden = !iv;
   if (!iv) return;
@@ -178,6 +208,7 @@ function editToggle() {
 $("#edit").addEventListener("input", editToggle);
 $("#edit").addEventListener("click", async e => {
   if (e.target.id === "e-cancel") closeEdit();
+  if (e.target.classList.contains("dreset")) { e.target.closest(".dayrow").querySelector(".dtime").value = $("#e-time").value; dayRows(); }
   if (e.target.id === "e-play") AQAnim.play($("#e-anim").value, { title: "Voorbeeld", sub: $("#e-title").value || "Zo ziet Jayden het" });
   if (e.target.id === "e-del" && armed(e.target)) {
     const { error } = await sb.from("aq_tasks").delete().eq("id", editing.t.id);
@@ -190,9 +221,15 @@ $("#edit").addEventListener("submit", async e => {
   const { t, isNew } = editing;
   const row = { title: $("#e-title").value.trim(), description: $("#e-desc").value.trim(), kind: $("#e-kind").value, remind_time: $("#e-time").value || null, anim: $("#e-anim").value, active: $("#e-active").checked };
   if (row.kind === "dagelijks") {
-    row.days = [...document.querySelectorAll("#e-dag input:checked")].map(i => +i.value);
+    row.days = [...document.querySelectorAll("#e-dag input[type=checkbox]:checked")].map(i => +i.value);
+    row.day_times = {};
+    for (const d of row.days) {
+      const v = document.querySelector(`#e-dag .dayrow[data-d="${d}"] .dtime`).value;
+      if (v && v !== row.remind_time) row.day_times[d] = v;
+    }
     row.every_days = null; row.due_date = null; row.due_override = null;
   } else {
+    row.day_times = {};
     row.every_days = Math.max(1, +$("#e-every").value || 7);
     const next = $("#e-next").value || AQ.today();
     const mode = document.querySelector('input[name=mode]:checked')?.value || "ritme";
